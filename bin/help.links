@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cat <<'EOS'
+* https://github.com/dafny-lang/dafny
+* https://dafny.org
+* https://github.com/dafny-lang/dafny/releases
+EOS

@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# Downloads a dafny release archive matching the current OS/arch into
+# $ASDF_DOWNLOAD_PATH.
+
+set -euo pipefail
+
+fail() {
+  echo -e "asdf-dafny: $*" >&2
+  exit 1
+}
+
+[ -n "${ASDF_INSTALL_TYPE:-}" ] || fail "missing ASDF_INSTALL_TYPE"
+[ -n "${ASDF_INSTALL_VERSION:-}" ] || fail "missing ASDF_INSTALL_VERSION"
+[ -n "${ASDF_DOWNLOAD_PATH:-}" ] || fail "missing ASDF_DOWNLOAD_PATH"
+
+[ "$ASDF_INSTALL_TYPE" = "version" ] || fail "only release installs are supported (got install type '$ASDF_INSTALL_TYPE')"
+
+version="$ASDF_INSTALL_VERSION"
+download_path="$ASDF_DOWNLOAD_PATH"
+
+get_arch() {
+  case "$(uname -m)" in
+  x86_64 | amd64) echo "x64" ;;
+  arm64 | aarch64) echo "arm64" ;;
+  *) fail "unsupported architecture: $(uname -m)" ;;
+  esac
+}
+
+get_os() {
+  case "$(uname -s)" in
+  Darwin) echo "macos" ;;
+  Linux) echo "ubuntu" ;;
+  *) fail "unsupported OS: $(uname -s). dafny-lang only publishes prebuilt binaries for macOS and Linux." ;;
+  esac
+}
+
+arch="$(get_arch)"
+os="$(get_os)"
+
+if [ "$os" = "ubuntu" ] && [ "$arch" = "arm64" ]; then
+  fail "dafny-lang does not publish Linux arm64 release binaries.\nSee https://github.com/dafny-lang/dafny/releases/tag/v${version}"
+fi
+
+curl_opts=(-fsSL)
+if [ -n "${GITHUB_API_TOKEN:-}" ]; then
+  curl_opts+=(-H "Authorization: Bearer ${GITHUB_API_TOKEN}")
+fi
+
+api_url="https://api.github.com/repos/dafny-lang/dafny/releases/tags/v${version}"
+release_json="$(curl "${curl_opts[@]}" "$api_url")" ||
+  fail "could not fetch release metadata for version ${version} from ${api_url}"
+
+asset_url="$(printf '%s' "$release_json" |
+  grep -o "\"browser_download_url\": *\"[^\"]*dafny-${version}-${arch}-${os}[^\"]*\.zip\"" |
+  head -n 1 |
+  sed -E 's/.*"(https:[^"]+)"/\1/')"
+
+[ -n "$asset_url" ] || fail "could not find a dafny release asset for version ${version} (arch ${arch}, os ${os}).\nCheck available assets at https://github.com/dafny-lang/dafny/releases/tag/v${version}"
+
+mkdir -p "$download_path"
+archive="${download_path}/dafny.zip"
+
+echo "asdf-dafny: downloading ${asset_url}"
+curl "${curl_opts[@]}" -o "$archive" "$asset_url" || fail "could not download $asset_url"
+
+command -v unzip >/dev/null 2>&1 || fail "unzip is required to install dafny but was not found on PATH"
+
+unzip -q -o "$archive" -d "$download_path" || fail "could not extract $archive"
+rm -f "$archive"
+
+[ -d "${download_path}/dafny" ] || fail "extracted archive did not contain the expected 'dafny' directory"

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#
+# Lists installable dafny versions, newest last (asdf's convention), sourced
+# from the dafny-lang/dafny GitHub releases with prebuilt binaries.
+
+set -euo pipefail
+
+curl_opts=(-fsSL)
+if [ -n "${GITHUB_API_TOKEN:-}" ]; then
+  curl_opts+=(-H "Authorization: Bearer ${GITHUB_API_TOKEN}")
+fi
+
+curl "${curl_opts[@]}" "https://api.github.com/repos/dafny-lang/dafny/releases?per_page=100" |
+  grep -o '"tag_name": *"v[0-9][0-9.]*"' |
+  sed -E 's/.*"(v[0-9.]+)".*/\1/' |
+  grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' |
+  sed 's/^v//' |
+  sort -t. -k1,1n -k2,2n -k3,3n |
+  tr '\n' ' '

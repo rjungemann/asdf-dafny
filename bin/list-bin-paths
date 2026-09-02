@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#
+# Prints the install-relative directories that should be added to PATH.
+
+echo "bin"

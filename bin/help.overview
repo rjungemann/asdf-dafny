@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+cat <<'EOS'
+dafny is the verification-aware programming language and compiler
+maintained by dafny-lang (https://github.com/dafny-lang/dafny).
+
+This plugin installs the official prebuilt dafny release archives.
+EOS

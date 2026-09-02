@@ -46,8 +46,18 @@ dafny verify MyProgram.dfy
 
 ## Testing locally
 
+With asdf:
+
 ```shell
 asdf plugin test dafny "$(pwd)" "dafny --version" --asdf-tool-version latest
+```
+
+With mise (note the `file://` prefix — a bare path is not accepted):
+
+```shell
+mise plugins install dafny "file://$(pwd)"
+mise install dafny@4.11.0
+mise x dafny@4.11.0 -- dafny --version
 ```
 
 ## How it works

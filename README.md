@@ -16,7 +16,7 @@ Prebuilt binaries are only published for:
 ### asdf
 
 ```shell
-asdf plugin add dafny https://github.com/YOUR_GITHUB_USERNAME/asdf-dafny.git
+asdf plugin add dafny https://github.com/rjungemann/asdf-dafny.git
 asdf install dafny latest
 asdf global dafny latest
 ```
@@ -26,7 +26,7 @@ asdf global dafny latest
 mise can use asdf plugins directly:
 
 ```shell
-mise plugin install dafny https://github.com/YOUR_GITHUB_USERNAME/asdf-dafny.git
+mise plugin install dafny https://github.com/rjungemann/asdf-dafny.git
 mise use --global dafny@latest
 ```
 
